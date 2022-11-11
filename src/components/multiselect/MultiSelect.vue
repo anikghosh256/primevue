@@ -33,7 +33,7 @@
                             <slot name="chip" :value="item">
                                 <span class="p-multiselect-token-label">{{ getLabelByValue(item) }}</span>
                             </slot>
-                            <span v-if="!disabled" class="p-multiselect-token-icon pi pi-times-circle" @click="removeOption($event, item)"></span>
+                            <span v-if="!disabled" :class="['p-multiselect-token-icon', removeTokenIcon]" @click="removeOption($event, item)"></span>
                         </div>
                         <template v-if="!modelValue || modelValue.length === 0">{{ placeholder || 'empty' }}</template>
                     </template>
@@ -56,7 +56,7 @@
                                 <input type="checkbox" readonly :checked="allSelected" :aria-label="toggleAllAriaLabel" @focus="onHeaderCheckboxFocus" @blur="onHeaderCheckboxBlur" />
                             </div>
                             <div :class="['p-checkbox-box', { 'p-highlight': allSelected, 'p-focus': headerCheckboxFocused }]">
-                                <span :class="['p-checkbox-icon', { 'pi pi-check': allSelected }]"></span>
+                                <span :class="['p-checkbox-icon', { [checkboxIcon]: allSelected }]"></span>
                             </div>
                         </div>
                         <div v-if="filter" class="p-multiselect-filter-container">
@@ -76,13 +76,13 @@
                                 @input="onFilterChange"
                                 v-bind="filterInputProps"
                             />
-                            <span class="p-multiselect-filter-icon pi pi-search"></span>
+                            <span :class="['p-multiselect-filter-icon', filterIcon]" />
                         </div>
                         <span v-if="filter" role="status" aria-live="polite" class="p-hidden-accessible">
                             {{ filterResultMessageText }}
                         </span>
                         <button v-ripple class="p-multiselect-close p-link" :aria-label="closeAriaLabel" @click="onCloseClick" type="button" v-bind="closeButtonProps">
-                            <span class="p-multiselect-close-icon pi pi-times" />
+                            <span :class="['p-multiselect-close-icon', closeIcon]" />
                         </button>
                     </div>
                     <div class="p-multiselect-items-wrapper" :style="{ 'max-height': virtualScrollerDisabled ? scrollHeight : '' }">
@@ -110,7 +110,7 @@
                                         >
                                             <div class="p-checkbox p-component">
                                                 <div :class="['p-checkbox-box', { 'p-highlight': isSelected(option) }]">
-                                                    <span :class="['p-checkbox-icon', { 'pi pi-check': isSelected(option) }]"></span>
+                                                    <span :class="['p-checkbox-icon', { [checkboxIcon]: isSelected(option) }]"></span>
                                                 </div>
                                             </div>
                                             <slot name="option" :option="option" :index="getOptionIndex(i, getItemOptions)">
@@ -146,12 +146,12 @@
 </template>
 
 <script>
-import { ConnectedOverlayScrollHandler, UniqueComponentId, ObjectUtils, DomHandler, ZIndexUtils } from 'primevue/utils';
-import OverlayEventBus from 'primevue/overlayeventbus';
 import { FilterService } from 'primevue/api';
-import Ripple from 'primevue/ripple';
-import VirtualScroller from 'primevue/virtualscroller';
+import OverlayEventBus from 'primevue/overlayeventbus';
 import Portal from 'primevue/portal';
+import Ripple from 'primevue/ripple';
+import { ConnectedOverlayScrollHandler, DomHandler, ObjectUtils, UniqueComponentId, ZIndexUtils } from 'primevue/utils';
+import VirtualScroller from 'primevue/virtualscroller';
 
 export default {
     name: 'MultiSelect',
@@ -238,9 +238,29 @@ export default {
             type: Boolean,
             default: false
         },
+        checkboxIcon: {
+            type: String,
+            default: 'pi pi-check'
+        },
+        closeIcon: {
+            type: String,
+            default: 'pi pi-times'
+        },
+        dropdownIcon: {
+            type: String,
+            default: 'pi pi-chevron-down'
+        },
+        filterIcon: {
+            type: String,
+            default: 'pi pi-search'
+        },
         loadingIcon: {
             type: String,
             default: 'pi pi-spinner pi-spin'
+        },
+        removeTokenIcon: {
+            type: String,
+            default: 'pi pi-times-circle'
         },
         selectAll: {
             type: Boolean,
@@ -387,7 +407,7 @@ export default {
         },
         onFocus(event) {
             this.focused = true;
-            this.focusedOptionIndex = this.overlayVisible && this.autoOptionFocus ? this.findFirstFocusedOptionIndex() : -1;
+            this.focusedOptionIndex = this.focusedOptionIndex !== -1 ? this.focusedOptionIndex : this.overlayVisible && this.autoOptionFocus ? this.findFirstFocusedOptionIndex() : -1;
             this.overlayVisible && this.scrollInView(this.focusedOptionIndex);
             this.$emit('focus', event);
         },
@@ -506,8 +526,8 @@ export default {
             else value = [...(this.modelValue || []), this.getOptionValue(option)];
 
             this.updateModel(event, value);
-            isFocus && DomHandler.focus(this.$refs.focusInput);
             index !== -1 && (this.focusedOptionIndex = index);
+            isFocus && DomHandler.focus(this.$refs.focusInput);
         },
         onOptionMouseMove(event, index) {
             if (this.focusOnHover) {
@@ -825,7 +845,7 @@ export default {
             if (this.selectAll !== null) {
                 this.$emit('selectall-change', { originalEvent: event, checked: !this.allSelected });
             } else {
-                const value = this.allSelected ? [] : this.visibleOptions.filter((option) => !this.isOptionGroup(option)).map((option) => this.getOptionValue(option));
+                const value = this.allSelected ? [] : this.visibleOptions.filter((option) => !this.isOptionDisabled(option) && !this.isOptionGroup(option)).map((option) => this.getOptionValue(option));
 
                 this.updateModel(event, value);
             }
@@ -1019,7 +1039,7 @@ export default {
             ];
         },
         dropdownIconClass() {
-            return ['p-multiselect-trigger-icon', this.loading ? this.loadingIcon : 'pi pi-chevron-down'];
+            return ['p-multiselect-trigger-icon', this.loading ? this.loadingIcon : this.dropdownIcon];
         },
         panelStyleClass() {
             return [
@@ -1043,7 +1063,26 @@ export default {
         visibleOptions() {
             const options = this.optionGroupLabel ? this.flatOptions(this.options) : this.options || [];
 
-            return this.filterValue ? FilterService.filter(options, this.searchFields, this.filterValue, this.filterMatchMode, this.filterLocale) : options;
+            if (this.filterValue) {
+                const filteredOptions = FilterService.filter(options, this.searchFields, this.filterValue, this.filterMatchMode, this.filterLocale);
+
+                if (this.optionGroupLabel) {
+                    const optionGroups = this.options || [];
+                    const filtered = [];
+
+                    optionGroups.forEach((group) => {
+                        const filteredItems = group.items.filter((item) => filteredOptions.includes(item));
+
+                        if (filteredItems.length > 0) filtered.push({ ...group, items: [...filteredItems] });
+                    });
+
+                    return this.flatOptions(filtered);
+                }
+
+                return filteredOptions;
+            }
+
+            return options;
         },
         label() {
             // TODO: Refactor
@@ -1070,7 +1109,9 @@ export default {
             return label;
         },
         allSelected() {
-            return this.selectAll !== null ? this.selectAll : ObjectUtils.isNotEmpty(this.visibleOptions) && this.visibleOptions.every((option) => this.isOptionGroup(option) || this.isValidSelectedOption(option));
+            return this.selectAll !== null
+                ? this.selectAll
+                : ObjectUtils.isNotEmpty(this.visibleOptions) && this.visibleOptions.filter((option) => !this.isOptionDisabled(option)).every((option) => this.isOptionGroup(option) || this.isValidSelectedOption(option));
         },
         hasSelectedOption() {
             return ObjectUtils.isNotEmpty(this.modelValue);

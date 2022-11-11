@@ -13,22 +13,22 @@
 
             <h5>Basic</h5>
             <div class="dock-window">
-                <Dock :model="dockBasicItems" position="bottom">
-                    <template #icon="{ item }">
-                        <img :alt="item.label" :src="item.icon" style="width: 100%" />
-                    </template>
-                </Dock>
                 <Dock :model="dockBasicItems" position="top">
                     <template #icon="{ item }">
                         <img :alt="item.label" :src="item.icon" style="width: 100%" />
                     </template>
                 </Dock>
-                <Dock :model="dockBasicItems" position="left">
+                <Dock :model="dockBasicItems" position="right">
                     <template #icon="{ item }">
                         <img :alt="item.label" :src="item.icon" style="width: 100%" />
                     </template>
                 </Dock>
-                <Dock :model="dockBasicItems" position="right">
+                <Dock :model="dockBasicItems" position="bottom">
+                    <template #icon="{ item }">
+                        <img :alt="item.label" :src="item.icon" style="width: 100%" />
+                    </template>
+                </Dock>
+                <Dock :model="dockBasicItems" position="left">
                     <template #icon="{ item }">
                         <img :alt="item.label" :src="item.icon" style="width: 100%" />
                     </template>
@@ -53,7 +53,7 @@
             <div class="dock-window dock-advanced">
                 <Dock :model="dockItems">
                     <template #item="{ item }">
-                        <a v-tooltip.top="item.label" href="#" class="p-dock-action" @click="onDockItemClick($event, item)">
+                        <a v-tooltip.top="item.label" href="#" class="p-dock-link" @click="onDockItemClick($event, item)">
                             <img :alt="item.label" :src="item.icon" style="width: 100%" />
                         </a>
                     </template>
@@ -80,9 +80,9 @@
 </template>
 
 <script>
+import TerminalService from 'primevue/terminalservice';
 import NodeService from '../../service/NodeService';
 import PhotoService from '../../service/PhotoService';
-import TerminalService from 'primevue/terminalservice';
 import DockDoc from './DockDoc.vue';
 
 export default {
@@ -381,7 +381,7 @@ export default {
             padding: 0.5rem 0.75rem;
         }
 
-        .p-menubar-root-list > .p-menuitem > .p-menuitem-link {
+        .p-menubar-root-list > .p-menuitem > .p-menuitem-content > .p-menuitem-link {
             padding: 0.5rem 0.75rem;
 
             > .p-submenu-icon {

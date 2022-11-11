@@ -448,6 +448,14 @@ export default {
         }
     },
 
+    getSelection() {
+        if (window.getSelection) return window.getSelection().toString();
+        else if (document.getSelection) return document.getSelection().toString();
+        else if (document['selection']) return document['selection'].createRange().text;
+
+        return null;
+    },
+
     calculateScrollbarWidth() {
         if (this.calculatedScrollbarWidth != null) return this.calculatedScrollbarWidth;
 
@@ -541,6 +549,12 @@ export default {
         const focusableElements = this.getFocusableElements(element, selector);
 
         return focusableElements.length > 0 ? focusableElements[0] : null;
+    },
+
+    getLastFocusableElement(element, selector) {
+        const focusableElements = this.getFocusableElements(element, selector);
+
+        return focusableElements.length > 0 ? focusableElements[focusableElements.length - 1] : null;
     },
 
     isClickable(element) {

@@ -82,17 +82,56 @@ myUploader(event) {
 </code></pre>
 
         <h5>Templating</h5>
-        <p>
-            When there is no file selected, you may use the empty slot to display content. Also, content slot may be used to place custom content inside the content section which would be useful to implement a user interface to manage the uploaded
-            files such as removing them.
-        </p>
+        <p>FileUpload component is extremely customizable thanks to the templating features, both the <i>header</i> and <i>content</i> sections provide custom slots.</p>
+
         <pre v-code><code>
-&lt;FileUpload name="demo[]" url="./upload"&gt;
-    &lt;template #content&gt;
-        &lt;p&gt;Additional content.&lt;/p&gt;
+&lt;FileUpload name="demo[]" url="./upload.php" @upload="onTemplatedUpload($event)" :multiple="true" accept="image/*" :maxFileSize="1000000" @select="onSelectedFiles"&gt;
+    &lt;template #header="&#123; chooseCallback, uploadCallback, clearCallback, files &#125;"&gt;
+        &lt;div class="flex flex-wrap justify-content-between align-items-center flex-1 gap-2"&gt;
+            &lt;div class="flex gap-2"&gt;
+                &lt;Button @click="chooseCallback()" icon="pi pi-images" class="p-button-rounded"&gt;&lt;/Button&gt;
+                &lt;Button @click="uploadCallback()" icon="pi pi-cloud-upload" class="p-button-rounded p-button-success" :disabled="!files || files.length === 0"&gt;&lt;/Button&gt;
+                &lt;Button @click="clearCallback()" icon="pi pi-times" class="p-button-rounded p-button-danger" :disabled="!files || files.length === 0"&gt;&lt;/Button&gt;
+            &lt;/div&gt;
+            &lt;ProgressBar :value="totalSizePercent" :showValue="false" :class="['md:w-20rem h-1rem w-full md:ml-auto', &#123;'exceeded-progress-bar': (totalSizePercent &gt; 100)&#125;]"&gt;&lt;span class="white-space-nowrap"&gt;&#123;&#123; totalSize &#125;&#125;B / 1Mb&lt;/span&gt;&lt;/ProgressBar&gt;
+        &lt;/div&gt;
+    &lt;/template&gt;
+    &lt;template #content="&#123; files, uploadedFiles, onUploadedFileRemove, onFileRemove &#125;"&gt;
+        &lt;div v-if="files.length &gt; 0"&gt;
+            &lt;h5&gt;Pending&lt;/h5&gt;
+            &lt;div class="flex flex-wrap p-5 gap-5"&gt;
+                &lt;div v-for="(file, index) of files" :key="file.name + file.type + file.size" class="card m-0 px-6 flex flex-column border-1 surface-border align-items-center gap-3"&gt;
+                    &lt;div&gt;
+                        &lt;img role="presentation" :alt="file.name" :src="file.objectURL" height="50" class="shadow-2" /&gt;
+                    &lt;/div&gt;
+                    &lt;span class="font-semibold"&gt;&#123;&#123; file.name &#125;&#125;&lt;/span&gt;
+                    &lt;div&gt;&#123;&#123; formatSize(file.size) &#125;&#125;&lt;/div&gt;
+                    &lt;Badge value="Pending" severity="warning" /&gt;
+                    &lt;Button icon="pi pi-times" @click="onRemoveTemplatingFile(file, onFileRemove, index)" class="p-button-outlined p-button-danger p-button-rounded" /&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div v-if="uploadedFiles.length &gt; 0"&gt;
+            &lt;h5&gt;Completed&lt;/h5&gt;
+            &lt;div class="flex flex-wrap p-0 sm:p-5 gap-5"&gt;
+                &lt;div v-for="(file, index) of uploadedFiles" :key="file.name + file.type + file.size" class="card m-0 px-6 flex flex-column border-1 surface-border align-items-center gap-3"&gt;
+                    &lt;div&gt;
+                        &lt;img role="presentation" :alt="file.name" :src="file.objectURL" width="100" class="shadow-2" /&gt;
+                    &lt;/div&gt;
+                    &lt;span class="font-semibold"&gt;&#123;&#123; file.name &#125;&#125;&lt;/span&gt;
+                    &lt;div&gt;&#123;&#123; formatSize(file.size) &#125;&#125;&lt;/div&gt;
+                    &lt;Badge value="Completed" class="mt-3" severity="success" /&gt;
+                    &lt;Button icon="pi pi-times" @click="onUploadedFileRemove(index)" class="p-button-outlined p-button-danger p-button-rounded" /&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
     &lt;/template&gt;
     &lt;template #empty&gt;
-        &lt;p&gt;Drag and drop files to here to upload.&lt;/p&gt;
+        &lt;div class="flex align-items-center justify-content-center flex-column"&gt;
+            &lt;i class="pi pi-cloud-upload border-2 border-circle p-5 text-8xl text-400 border-400" /&gt;
+            &lt;p class="mt-4 mb-0"&gt;Drag and drop files to here to upload.&lt;/p&gt;
+        &lt;/div&gt;
     &lt;/template&gt;
 &lt;/FileUpload&gt;
 
@@ -169,6 +208,12 @@ myUploader(event) {
                         <td>string</td>
                         <td>Maximum number of files exceeded, limit is &#123;0&#125; at most.</td>
                         <td>Message to display when number of files to be uploaded exceeeds the limit.</td>
+                    </tr>
+                    <tr>
+                        <td>invalidFileTypeMessage</td>
+                        <td>string</td>
+                        <td>"&#123;0&#125;: Invalid file type, allowed file types: &#123;1&#125;"".</td>
+                        <td>Message of the invalid file type.</td>
                     </tr>
                     <tr>
                         <td>fileLimit</td>
@@ -333,7 +378,15 @@ myUploader(event) {
                             event.file: Removed file. <br />
                             event.files: Remaining files to be uploaded.
                         </td>
-                        <td>Callback to invoke when a singe file is removed from the list.</td>
+                        <td>Callback to invoke when a single file is removed from the file list to upload.</td>
+                    </tr>
+                    <tr>
+                        <td>removeUploadedFile</td>
+                        <td>
+                            event.file: Removed uploaded file. <br />
+                            event.files: Remaining uploaded files.
+                        </td>
+                        <td>Callback to invoke when a single uploaded file is removed from the uploaded file list.</td>
                     </tr>
                 </tbody>
             </table>
@@ -350,8 +403,25 @@ myUploader(event) {
                 </thead>
                 <tbody>
                     <tr>
+                        <td>header</td>
+                        <td>
+                            files: Files to upload <br />
+                            uploadedFiles: Uploaded Files <br />
+                            chooseCallback: Choose function <br />
+                            uploadCallback: Upload function <br />
+                            clearCallback: Clear function
+                        </td>
+                    </tr>
+                    <tr>
                         <td>content</td>
-                        <td>-</td>
+                        <td>
+                            files: Files to upload <br />
+                            uploadedFiles: Uploaded Files <br />
+                            progress: Uploaded progress as number <br />
+                            messages: Status messages about upload process <br />
+                            removeFileCallback(index): Function to remove a file <br />
+                            removeUploadedFileCallback(index): Function to remove an uploaded file
+                        </td>
                     </tr>
                     <tr>
                         <td>empty</td>
@@ -377,12 +447,56 @@ myUploader(event) {
                         <td>Container element.</td>
                     </tr>
                     <tr>
+                        <td>p-fileupload-basic</td>
+                        <td>Container element in basic mode.</td>
+                    </tr>
+                    <tr>
+                        <td>p-fileupload-advanced</td>
+                        <td>Container element in advanced mode.</td>
+                    </tr>
+                    <tr>
                         <td>p-fileupload-buttonbar</td>
                         <td>Header containing the buttons.</td>
                     </tr>
                     <tr>
                         <td>p-fileupload-content</td>
                         <td>Content section.</td>
+                    </tr>
+                    <tr>
+                        <td>p-fileupload-file</td>
+                        <td>File item.</td>
+                    </tr>
+                    <tr>
+                        <td>p-fileupload-file-thumbnail</td>
+                        <td>Image preview of a file.</td>
+                    </tr>
+                    <tr>
+                        <td>p-fileupload-file-details</td>
+                        <td>Container of file details.</td>
+                    </tr>
+                    <tr>
+                        <td>p-fileupload-file-name</td>
+                        <td>File name element.</td>
+                    </tr>
+                    <tr>
+                        <td>p-fileupload-file-size</td>
+                        <td>File size element.</td>
+                    </tr>
+                    <tr>
+                        <td>p-fileupload-file-badge</td>
+                        <td>File badge element.</td>
+                    </tr>
+                    <tr>
+                        <td>p-fileupload-file-actions</td>
+                        <td>Container of file actions.</td>
+                    </tr>
+                    <tr>
+                        <td>p-fileupload-file-remove</td>
+                        <td>Button to remove a file.</td>
+                    </tr>
+                    <tr>
+                        <td>p-fileupload-empty</td>
+                        <td>Container of the empty slot.</td>
                     </tr>
                 </tbody>
             </table>
@@ -406,9 +520,65 @@ export default {
 		<Toast />
 
         <h5>Advanced</h5>
-        <FileUpload name="demo[]" url="./upload.php" @upload="onUpload" :multiple="true" accept="image/*" :maxFileSize="1000000">
+        <FileUpload name="demo[]" url="https://www.primefaces.org/upload.php" @upload="onAdvancedUpload($event)" :multiple="true" accept="image/*" :maxFileSize="1000000">
+            <template #content>
+                <ul v-if="uploadedFiles && uploadedFiles[0]">
+                    <li v-for="file of uploadedFiles[0]" :key="file">{{ file.name }} - {{ file.size }} bytes</li>
+                </ul>
+            </template>
             <template #empty>
                 <p>Drag and drop files to here to upload.</p>
+            </template>
+        </FileUpload>
+
+        <h5>Templating</h5>
+        <FileUpload name="demo[]" url="./upload.php" @upload="onTemplatedUpload($event)" :multiple="true" accept="image/*" :maxFileSize="1000000" @select="onSelectedFiles">
+            <template #header="{ chooseCallback, uploadCallback, clearCallback, files }">
+                <div class="flex flex-wrap justify-content-between align-items-center flex-1 gap-2">
+                    <div class="flex gap-2">
+                        <Button @click="chooseCallback()" icon="pi pi-images" class="p-button-rounded"></Button>
+                        <Button @click="uploadEvent(uploadCallback)" icon="pi pi-cloud-upload" class="p-button-rounded p-button-success" :disabled="!files || files.length === 0"></Button>
+                        <Button @click="clearCallback()" icon="pi pi-times" class="p-button-rounded p-button-danger" :disabled="!files || files.length === 0"></Button>
+                    </div>
+                    <ProgressBar :value="totalSizePercent" :showValue="false" :class="['md:w-20rem h-1rem w-full md:ml-auto', {'exceeded-progress-bar': (totalSizePercent > 100)}]"><span class="white-space-nowrap">{{ totalSize }}B / 1Mb</span></ProgressBar>
+                </div>
+            </template>
+            <template #content="{ files, uploadedFiles, removeUploadedFileCallback, fileRemoveCallback }">
+                <div v-if="files.length > 0">
+                    <h5>Pending</h5>
+                    <div class="flex flex-wrap p-5 gap-5">
+                        <div v-for="(file, index) of files" :key="file.name + file.type + file.size" class="card m-0 px-6 flex flex-column border-1 surface-border align-items-center gap-3">
+                            <div>
+                                <img role="presentation" :alt="file.name" :src="file.objectURL" width="100" height="50" class="shadow-2" />
+                            </div>
+                            <span class="font-semibold">{{ file.name }}</span>
+                            <div>{{ formatSize(file.size) }}</div>
+                            <Badge value="Pending" severity="warning" />
+                            <Button icon="pi pi-times" @click="onRemoveTemplatingFile(file, fileRemoveCallback, index)" class="p-button-outlined p-button-danger p-button-rounded" />
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="uploadedFiles.length > 0">
+                    <h5>Completed</h5>
+                    <div class="flex flex-wrap p-0 sm:p-5 sm:p-5 gap-5">
+                        <div v-for="(file, index) of uploadedFiles" :key="file.name + file.type + file.size" class="card m-0 px-6 flex flex-column border-1 surface-border align-items-center gap-3">
+                            <div>
+                                <img role="presentation" :alt="file.name" :src="file.objectURL" width="100" height="50" class="shadow-2" />
+                            </div>
+                            <span class="font-semibold">{{ file.name }}</span>
+                            <div>{{ formatSize(file.size) }}</div>
+                            <Badge value="Completed" class="mt-3" severity="success" />
+                            <Button icon="pi pi-times" @click="removeUploadedFileCallback(index)" class="p-button-outlined p-button-danger p-button-rounded" />
+                        </div>
+                    </div>
+                </div>
+            </template>
+            <template #empty>
+                <div class="flex align-items-center justify-content-center flex-column">
+                    <i class="pi pi-cloud-upload border-2 border-circle p-5 text-8xl text-400 border-400" />
+                    <p class="mt-4 mb-0">Drag and drop files to here to upload.</p>
+                </div>
             </template>
         </FileUpload>
 
@@ -422,13 +592,69 @@ export default {
 
 <script>
 export default {
+    data() {
+        return {
+            uploadedFiles: [],
+            files: [],
+            totalSize: 0,
+            totalSizePercent: 0
+        };
+    },
     methods: {
+        onRemoveTemplatingFile(file, onFileRemove, index) {
+            onFileRemove(index);
+            this.totalSize -= parseInt(this.formatSize(file.size));
+            this.totalSizePercent = this.totalSize / 10;
+        },
+        onClearTemplatingUpload(clear) {
+            clear();
+            this.totalSize = 0;
+            this.totalSizePercent = 0;
+        },
+        onSelectedFiles(event) {
+            this.files = event.files;
+            this.files.forEach((file) => {
+                this.totalSize += parseInt(this.formatSize(file.size));
+            });
+        },
+        onAdvancedUpload() {
+            this.$toast.add({ severity: 'info', summary: 'Success', detail: 'File Uploaded', life: 3000 });
+        },
+        uploadEvent(callback) {
+            this.totalSizePercent = this.totalSize / 10;
+            callback();
+        },
+        onTemplatedUpload() {
+            this.totalSize = 0;
+            this.totalSizePercent = 0;
+            this.$toast.add({ severity: 'info', summary: 'Success', detail: 'File Uploaded', life: 3000 });
+        },
         onUpload() {
-            this.$toast.add({severity: 'info', summary: 'Success', detail: 'File Uploaded', life: 3000});
+            this.$toast.add({ severity: 'info', summary: 'Success', detail: 'File Uploaded', life: 3000 });
+        },
+        formatSize(bytes) {
+            if (bytes === 0) {
+                return '0 B';
+            }
+
+            let k = 1000,
+                dm = 3,
+                sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
+                i = Math.floor(Math.log(bytes) / Math.log(k));
+
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
         }
     }
-}
+};
 <\\/script>
+
+<style lang="scss" scoped>
+    ::v-deep(.custom-progress-bar) {
+        .p-progressbar-value {
+            background-color: #f44336;
+        }
+    }
+</style>
 `
                 },
                 'composition-api': {
@@ -439,9 +665,65 @@ export default {
 		<Toast />
 
         <h5>Advanced</h5>
-        <FileUpload name="demo[]" url="./upload.php" @upload="onUpload" :multiple="true" accept="image/*" :maxFileSize="1000000">
+        <FileUpload name="demo[]" url="https://www.primefaces.org/upload.php" @upload="onAdvancedUpload($event)" :multiple="true" accept="image/*" :maxFileSize="1000000">
+            <template #content>
+                <ul v-if="uploadedFiles && uploadedFiles[0]">
+                    <li v-for="file of uploadedFiles[0]" :key="file">{{ file.name }} - {{ file.size }} bytes</li>
+                </ul>
+            </template>
             <template #empty>
                 <p>Drag and drop files to here to upload.</p>
+            </template>
+        </FileUpload>
+
+        <h5>Templating</h5>
+        <FileUpload name="demo[]" url="./upload.php" @upload="onTemplatedUpload($event)" :multiple="true" accept="image/*" :maxFileSize="1000000" @select="onSelectedFiles">
+            <template #header="{ chooseCallback, uploadCallback, clearCallback, files }">
+                <div class="flex flex-wrap justify-content-between align-items-center flex-1 gap-2">
+                    <div class="flex gap-2">
+                        <Button @click="chooseCallback()" icon="pi pi-images" class="p-button-rounded"></Button>
+                        <Button @click="uploadEvent(uploadCallback)" icon="pi pi-cloud-upload" class="p-button-rounded p-button-success" :disabled="!files || files.length === 0"></Button>
+                        <Button @click="clearCallback()" icon="pi pi-times" class="p-button-rounded p-button-danger" :disabled="!files || files.length === 0"></Button>
+                    </div>
+                    <ProgressBar :value="totalSizePercent" :showValue="false" :class="['md:w-20rem h-1rem w-full md:ml-auto', {'exceeded-progress-bar': (totalSizePercent > 100)}]"><span class="white-space-nowrap">{{ totalSize }}B / 1Mb</span></ProgressBar>
+                </div>
+            </template>
+            <template #content="{ files, uploadedFiles, removeUploadedFileCallback, fileRemoveCallback }">
+                <div v-if="files.length > 0">
+                    <h5>Pending</h5>
+                    <div class="flex flex-wrap p-0 sm:p-5 gap-5">
+                        <div v-for="(file, index) of files" :key="file.name + file.type + file.size" class="card m-0 px-6 flex flex-column border-1 surface-border align-items-center gap-3">
+                            <div>
+                                <img role="presentation" :alt="file.name" :src="file.objectURL" width="100" height="50" class="shadow-2" />
+                            </div>
+                            <span class="font-semibold">{{ file.name }}</span>
+                            <div>{{ formatSize(file.size) }}</div>
+                            <Badge value="Pending" severity="warning" />
+                            <Button icon="pi pi-times" @click="onRemoveTemplatingFile(file, fileRemoveCallback, index)" class="p-button-outlined p-button-danger p-button-rounded" />
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="uploadedFiles.length > 0">
+                    <h5>Completed</h5>
+                    <div class="flex flex-wrap p-0 sm:p-5 gap-5">
+                        <div v-for="(file, index) of uploadedFiles" :key="file.name + file.type + file.size" class="card m-0 px-6 flex flex-column border-1 surface-border align-items-center gap-3">
+                            <div>
+                                <img role="presentation" :alt="file.name" :src="file.objectURL" width="100" height="50" class="shadow-2" />
+                            </div>
+                            <span class="font-semibold">{{ file.name }}</span>
+                            <div>{{ formatSize(file.size) }}</div>
+                            <Badge value="Completed" class="mt-3" severity="success" />
+                            <Button icon="pi pi-times" @click="removeUploadedFileCallback(index)" class="p-button-outlined p-button-danger p-button-rounded" />
+                        </div>
+                    </div>
+                </div>
+            </template>
+            <template #empty>
+                <div class="flex align-items-center justify-content-center flex-column">
+                    <i class="pi pi-cloud-upload border-2 border-circle p-5 text-8xl text-400 border-400" />
+                    <p class="mt-4 mb-0">Drag and drop files to here to upload.</p>
+                </div>
             </template>
         </FileUpload>
 
@@ -460,30 +742,148 @@ import { useToast } from 'primevue/usetoast';
 export default {
 	setup() {
 		const toast = useToast();
-		const onUpload = () => {
-            toast.add({severity: 'info', summary: 'Success', detail: 'File Uploaded', life: 3000});
+        const uploadedFile = ref([]);
+        const files = ref([]);
+        const totalSize = ref(0);
+        const totalSizePercent = ref(0);
+
+        const onRemoveTemplatingFile = (file, onFileRemove, index) => {
+            onFileRemove(index);
+            totalSize.value -= parseInt(this.formatSize(file.size));
+            totalSizePercent.value = totalSize.value / 10;
         }
 
-		return { onUpload };
+        const onClearTemplatingUpload = (clear) => {
+            clear();
+            totalSize.value = 0;
+            totalSizePercent.value = 0;
+        }
+
+        const onSelectedFiles = (event) => {
+            files.value = event.files;
+            files.value.forEach((file) => {
+                totalSize.value += parseInt(this.formatSize(file.size));
+            });
+        }
+
+        const onAdvancedUpload = () => {
+            toast.add({ severity: 'info', summary: 'Success', detail: 'File Uploaded', life: 3000 });
+        }
+
+        const uploadEvent = (callback) => {
+            totalSizePercent.value = totalSize.value / 10;
+            callback();
+        },
+
+        const onTemplatedUpload = () => {
+            totalSize.value = 0;
+            totalSizePercent.value = 0;
+            toast.add({ severity: 'info', summary: 'Success', detail: 'File Uploaded', life: 3000 });
+        }
+
+        const onUpload = () => {
+            toast.add({ severity: 'info', summary: 'Success', detail: 'File Uploaded', life: 3000 });
+        }
+
+        const formatSize = (bytes) => {
+            if (bytes === 0) {
+                return '0 B';
+            }
+
+            let k = 1000,
+                dm = 3,
+                sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
+                i = Math.floor(Math.log(bytes) / Math.log(k));
+
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+
+
+		return { onUpload, onRemoveTemplatingFile, onClearTemplatingUpload, onSelectedFiles, onAdvancedUpload, uploadEvent, onTemplatedUpload, onUpload, formatSize };
 	}
 }
 <\\/script>
+
+<style lang="scss" scoped>
+    ::v-deep(.custom-progress-bar) {
+        .p-progressbar-value {
+            background-color: #f44336;
+        }
+    }
+</style>
 `
                 },
                 'browser-source': {
                     tabName: 'Browser Source',
                     imports: `<script src="https://unpkg.com/primevue@^3/fileupload/fileupload.min.js"><\\/script>
-			<script src="https://unpkg.com/primevue@^3/toast/toast.min.js"><\\/script>
+            <script src="https://unpkg.com/primevue@^3/badge/badge.min.js"><\\/script>
+            <script src="https://unpkg.com/primevue@^3/toast/toast.min.js"><\\/script>
 			<script src="https://unpkg.com/primevue@^3/toastservice/toastservice.min.js"><\\/script>`,
                     content: `<div id="app">
 				<p-toast></p-toast>
 
-				<h5>Advanced</h5>
-				<p-fileupload name="demo[]" url="./upload.php" @upload="onUpload" :multiple="true" accept="image/*" :max-file-size="1000000">
-					<template #empty>
-						<p>Drag and drop files to here to upload.</p>
-					</template>
-				</p-fileupload>
+                <h5>Advanced</h5>
+                <p-fileupload name="demo[]" url="https://www.primefaces.org/upload.php" @upload="onAdvancedUpload($event)" :multiple="true" accept="image/*" :max-file-size="1000000">
+                    <template #content>
+                        <ul v-if="uploadedFiles && uploadedFiles[0]">
+                            <li v-for="file of uploadedFiles[0]" :key="file">{{ file.name }} - {{ file.size }} bytes</li>
+                        </ul>
+                    </template>
+                    <template #empty>
+                        <p>Drag and drop files to here to upload.</p>
+                    </template>
+                </p-fileupload>
+
+                <h5>Templating</h5>
+                <p-fileupload name="demo[]" url="./upload.php" @upload="onTemplatedUpload($event)" :multiple="true" accept="image/*" :max-file-size="1000000" @select="onSelectedFiles">
+                    <template #header="{ chooseCallback, uploadCallback, clearCallback, files }">
+                        <div class="flex flex-wrap justify-content-between align-items-center flex-1 gap-2">
+                            <div class="flex gap-2">
+                                <p-button @click="chooseCallback()" icon="pi pi-images" class="p-button-rounded"></p-button>
+                                <p-button @click="uploadEvent(uploadCallback)" icon="pi pi-cloud-upload" class="p-button-rounded p-button-success" :disabled="!files || files.length === 0"></p-button>
+                                <p-button @click="clearCallback()" icon="pi pi-times" class="p-button-rounded p-button-danger" :disabled="!files || files.length === 0"></p-button>
+                            </div>
+                            <p-progressbar :value="totalSizePercent" :show-value="false" :class="['md:w-20rem h-1rem w-full md:ml-auto', {'exceeded-progress-bar': (totalSizePercent > 100)}]"><span class="white-space-nowrap">{{ totalSize }}B / 1Mb</span></p-progressbar>
+                        </div>
+                    </template>
+                    <template #content="{ files, uploadedFiles, removeUploadedFileCallback, fileRemoveCallback }">
+                        <div v-if="files.length > 0">
+                            <h5>Pending</h5>
+                            <div class="flex flex-wrap p-0 sm:p-5 gap-5">
+                                <div v-for="(file, index) of files" :key="file.name + file.type + file.size" class="card m-0 px-6 flex flex-column border-1 surface-border align-items-center gap-3">
+                                    <div>
+                                        <img role="presentation" :alt="file.name" :src="file.objectURL" width="100" height="50" class="shadow-2" />
+                                    </div>
+                                    <span class="font-semibold">{{ file.name }}</span>
+                                    <div>{{ formatSize(file.size) }}</div>
+                                    <p-badge value="Pending" severity="warning"></p-badge>
+                                    <p-button icon="pi pi-times" @click="onRemoveTemplatingFile(file, fileRemoveCallback, index)" class="p-button-outlined p-button-danger p-button-rounded"></p-button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div v-if="uploadedFiles.length > 0">
+                            <h5>Completed</h5>
+                            <div class="flex flex-wrap p-0 sm:p-5 gap-5">
+                                <div v-for="(file, index) of uploadedFiles" :key="file.name + file.type + file.size" class="card m-0 px-6 flex flex-column border-1 surface-border align-items-center gap-3">
+                                    <div>
+                                        <img role="presentation" :alt="file.name" :src="file.objectURL" width="100" height="50" class="shadow-2" />
+                                    </div>
+                                    <span class="font-semibold">{{ file.name }}</span>
+                                    <div>{{ formatSize(file.size) }}</div>
+                                    <p-badge value="Completed" class="mt-3" severity="success"></p-badge>
+                                    <p-button icon="pi pi-times" @click="removeUploadedFileCallback(index)" class="p-button-outlined p-button-danger p-button-rounded"></p-button>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                    <template #empty>
+                        <div class="flex align-items-center justify-content-center flex-column">
+                            <i class="pi pi-cloud-upload border-2 border-circle p-5 text-8xl text-400 border-400"></i>
+                            <p class="mt-4 mb-0">Drag and drop files to here to upload.</p>
+                        </div>
+                    </template>
+                </p-fileupload>
 
 				<h5>Basic</h5>
 				<p-fileupload mode="basic" name="demo[]" url="./upload.php" accept="image/*" :max-file-size="1000000" @upload="onUpload"></p-fileupload>
@@ -498,23 +898,72 @@ export default {
 
 			const App = {
 				setup() {
-					const toast = useToast();
-					const onUpload = () => {
-						toast.add({severity: 'info', summary: 'Success', detail: 'File Uploaded', life: 3000});
-					}
+                    const toast = useToast();
+                    const uploadedFile = ref([]);
+                    const files = ref([]);
+                    const totalSize = ref(0);
+                    const totalSizePercent = ref(0);
 
-					return { onUpload };
-				},
-				components: {
-					"p-fileupload": primevue.fileupload,
-					"p-toast": primevue.toast
-				}
+                    return {toast, uploadedFile,files,totalSize,totalSizePercent};
+                },
+                methods: {
+                    onRemoveTemplatingFile(file, fileRemoveCallback, index) {
+                        fileRemoveCallback(index);
+                        this.totalSize -= parseInt(this.formatSize(file.size));
+                        this.totalSizePercent = this.totalSize / 10;
+                    },
+                    onClearTemplatingUpload(clear) {
+                        clear();
+                        this.totalSize = 0;
+                        this.totalSizePercent = 0;
+                    },
+                    onSelectedFiles(event) {
+                        this.files = event.files;
+                        this.files.forEach((file) => {
+                            this.totalSize += parseInt(this.formatSize(file.size));
+                        });
+                    },
+                    onAdvancedUpload() {
+                        this.$toast.add({ severity: 'info', summary: 'Success', detail: 'File Uploaded', life: 3000 });
+                    },
+                    uploadEvent(callback) {
+                        this.totalSizePercent = this.totalSize / 10;
+                        callback();
+                    },
+                    onTemplatedUpload() {
+                        this.totalSize = 0;
+                        this.totalSizePercent = 0;
+                        this.$toast.add({ severity: 'info', summary: 'Success', detail: 'File Uploaded', life: 3000 });
+                    },
+                    onUpload() {
+                        this.$toast.add({ severity: 'info', summary: 'Success', detail: 'File Uploaded', life: 3000 });
+                    },
+                    formatSize(bytes) {
+                        if (bytes === 0) {
+                            return '0 B';
+                        }
+
+                        let k = 1000,
+                            dm = 3,
+                            sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
+                            i = Math.floor(Math.log(bytes) / Math.log(k));
+
+                        return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+                    }
+                },
+                components: {
+                    "p-fileupload": primevue.fileupload,
+                    "p-button": primevue.button,
+                    "p-badge": primevue.badge,
+                    "p-progressbar": primevue.progressbar,
+                    "p-toast": primevue.toast
+                }
 			};
 
-			createApp(App)
-				.use(primevue.config.default)
-				.use(primevue.toastservice)
-				.mount("#app");
+			const app = createApp(App)
+				app.use(primevue.config.default)
+				app.use(primevue.toastservice)
+				app.mount("#app");
 			<\\/script>
 `
                 }

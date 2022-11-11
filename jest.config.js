@@ -6,6 +6,7 @@ module.exports = {
     moduleNameMapper: {
         '^primevue/ripple(.*)$': '<rootDir>/src/components/ripple/Ripple.js',
         '^primevue/tooltip(.*)$': '<rootDir>/src/components/tooltip/Tooltip.js',
+        '^primevue/focustrap(.*)$': '<rootDir>/src/components/focustrap/FocusTrap.js',
         '^primevue/useconfirm(.*)$': '<rootDir>/src/components/useconfirm/UseConfirm.js',
         '^primevue/usetoast(.*)$': '<rootDir>/src/components/usetoast/UseToast.js',
         '^primevue/utils(.*)$': '<rootDir>/src/components/utils/Utils.js',
@@ -21,6 +22,7 @@ module.exports = {
         '^primevue/progressbar(.*)$': '<rootDir>/src/components/progressbar/ProgressBar.vue',
         '^primevue/message(.*)$': '<rootDir>/src/components/message/Message.vue',
         '^primevue/tree(.*)$': '<rootDir>/src/components/tree/Tree.vue',
+        '^primevue/badge(.*)$': '<rootDir>/src/components/badge/Badge.vue',
         '^primevue/confirmationeventbus(.*)$': '<rootDir>/src/components/confirmationeventbus/ConfirmationEventBus.js',
         '^primevue/toasteventbus(.*)$': '<rootDir>/src/components/toasteventbus/ToastEventBus.js',
         '^primevue/overlayeventbus(.*)$': '<rootDir>/src/components/overlayeventbus/OverlayEventBus.js',

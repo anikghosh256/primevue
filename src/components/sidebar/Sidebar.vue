@@ -1,13 +1,13 @@
 <template>
     <Portal>
         <transition name="p-sidebar" @enter="onEnter" @leave="onLeave" @after-leave="onAfterLeave" appear>
-            <div v-if="visible" :ref="containerRef" :class="containerClass" role="complementary" :aria-modal="modal" v-bind="$attrs">
+            <div v-if="visible" :ref="containerRef" v-focustrap :class="containerClass" role="complementary" :aria-modal="modal" @keydown="onKeydown" v-bind="$attrs">
                 <div class="p-sidebar-header">
                     <div v-if="$slots.header" class="p-sidebar-header-content">
                         <slot name="header"></slot>
                     </div>
-                    <button v-if="showCloseIcon" v-ripple class="p-sidebar-close p-sidebar-icon p-link" @click="hide" :aria-label="ariaCloseLabel" type="button">
-                        <span class="p-sidebar-close-icon pi pi-times" />
+                    <button v-if="showCloseIcon" v-ripple type="button" class="p-sidebar-close p-sidebar-icon p-link" :aria-label="closeAriaLabel" @click="hide">
+                        <span :class="['p-sidebar-close-icon', closeIcon]" />
                     </button>
                 </div>
                 <div class="p-sidebar-content">
@@ -19,9 +19,10 @@
 </template>
 
 <script>
-import { DomHandler, ZIndexUtils } from 'primevue/utils';
-import Ripple from 'primevue/ripple';
+import FocusTrap from 'primevue/focustrap';
 import Portal from 'primevue/portal';
+import Ripple from 'primevue/ripple';
+import { DomHandler, ZIndexUtils } from 'primevue/utils';
 
 export default {
     name: 'Sidebar',
@@ -52,13 +53,13 @@ export default {
             type: Boolean,
             default: true
         },
+        closeIcon: {
+            type: String,
+            default: 'pi pi-times'
+        },
         modal: {
             type: Boolean,
             default: true
-        },
-        ariaCloseLabel: {
-            type: String,
-            default: 'close'
         }
     },
     mask: null,
@@ -140,6 +141,11 @@ export default {
                 this.mask.addEventListener('click', this.maskClickListener);
             }
         },
+        onKeydown(event) {
+            if (event.code === 'Escape') {
+                this.hide();
+            }
+        },
         unbindMaskClickListener() {
             if (this.maskClickListener) {
                 this.mask.removeEventListener('click', this.maskClickListener);
@@ -171,9 +177,13 @@ export default {
         },
         fullScreen() {
             return this.position === 'full';
+        },
+        closeAriaLabel() {
+            return this.$primevue.config.locale.aria ? this.$primevue.config.locale.aria.close : undefined;
         }
     },
     directives: {
+        focustrap: FocusTrap,
         ripple: Ripple
     },
     components: {

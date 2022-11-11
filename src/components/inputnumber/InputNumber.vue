@@ -35,8 +35,9 @@
 </template>
 
 <script>
-import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
+import InputText from 'primevue/inputtext';
+import { DomHandler } from 'primevue/utils';
 
 export default {
     name: 'InputNumber',
@@ -129,6 +130,10 @@ export default {
         allowEmpty: {
             type: Boolean,
             default: true
+        },
+        highlightOnFocus: {
+            type: Boolean,
+            default: false
         },
         readonly: {
             type: Boolean,
@@ -836,7 +841,9 @@ export default {
             return index || 0;
         },
         onInputClick() {
-            if (!this.readonly) {
+            const currentValue = this.$refs.input.$el.value;
+
+            if (!this.readonly && currentValue !== DomHandler.getSelection()) {
                 this.initCursor();
             }
         },
@@ -869,7 +876,7 @@ export default {
         },
         handleOnInput(event, currentValue, newValue) {
             if (this.isValueChanged(currentValue, newValue)) {
-                this.$emit('input', { originalEvent: event, value: newValue });
+                this.$emit('input', { originalEvent: event, value: newValue, formattedValue: currentValue });
             }
         },
         isValueChanged(currentValue, newValue) {
@@ -978,7 +985,11 @@ export default {
 
                 this._decimal.lastIndex = 0;
 
-                return decimalCharIndex !== -1 ? val1.split(this._decimal)[0] + val2.slice(decimalCharIndex) : val1;
+                if (this.suffixChar) {
+                    return val1.replace(this.suffixChar, '').split(this._decimal)[0] + val2.replace(this.suffixChar, '').slice(decimalCharIndex) + this.suffixChar;
+                } else {
+                    return decimalCharIndex !== -1 ? val1.split(this._decimal)[0] + val2.slice(decimalCharIndex) : val1;
+                }
             }
 
             return val1;
@@ -1000,6 +1011,11 @@ export default {
         },
         onInputFocus(event) {
             this.focused = true;
+
+            if (!this.disabled && !this.readonly && this.$refs.input.$el.value !== DomHandler.getSelection() && this.highlightOnFocus) {
+                event.target.select();
+            }
+
             this.$emit('focus', event);
         },
         onInputBlur(event) {

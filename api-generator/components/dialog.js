@@ -54,6 +54,12 @@ const DialogProps = [
         description: 'Style class of the content section.'
     },
     {
+        name: 'contentProps',
+        type: 'null',
+        default: 'null',
+        description: 'Uses to pass all properties of the HTMLDivElement to the overlay panel inside the component.'
+    },
+    {
         name: 'rtl',
         type: 'boolean',
         default: 'null',
@@ -82,12 +88,6 @@ const DialogProps = [
         type: 'boolean',
         default: 'true',
         description: 'Whether to automatically manage layering.'
-    },
-    {
-        name: 'ariaCloseLabel',
-        type: 'string',
-        default: 'close',
-        description: 'Aria label of the close icon.'
     },
     {
         name: 'maximizable',
@@ -130,6 +130,24 @@ const DialogProps = [
         type: 'string',
         default: 'body',
         description: 'A valid query selector or an HTMLElement to specify where the dialog gets attached. Special keywords are "body" for document body and "self" for the element itself.'
+    },
+    {
+        name: 'closeIcon',
+        type: 'string',
+        default: 'pi pi-times',
+        description: 'Icon to display in the dialog close button.'
+    },
+    {
+        name: 'maximizeIcon',
+        type: 'string',
+        default: 'pi pi-window-maximize',
+        description: 'Icon to display in the dialog maximize button when dialog is not maximized.'
+    },
+    {
+        name: 'minimizeIcon',
+        type: 'string',
+        default: 'pi pi-window-minimize',
+        description: 'Icon to display in the dialog maximize button when dialog is maximized.'
     }
 ];
 

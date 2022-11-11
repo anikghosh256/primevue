@@ -31,9 +31,9 @@ const PaginatorProps = [
     },
     {
         name: 'template',
-        type: 'string',
+        type: 'any | string',
         default: 'FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown',
-        description: 'Template of the paginator.'
+        description: 'Template of the paginator, can either be a string or an object with key-value pairs to define templates per breakpoint.'
     },
     {
         name: 'currentPageReportTemplate',

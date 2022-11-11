@@ -70,8 +70,8 @@
 </template>
 
 <script>
-import { UniqueComponentId, DomHandler } from 'primevue/utils';
 import Ripple from 'primevue/ripple';
+import { DomHandler, UniqueComponentId } from 'primevue/utils';
 
 export default {
     name: 'TabView',
@@ -103,7 +103,6 @@ export default {
     data() {
         return {
             d_activeIndex: this.activeIndex,
-            focusedTabIndex: -1,
             isPrevButtonDisabled: true,
             isNextButtonDisabled: false
         };
@@ -117,6 +116,7 @@ export default {
     },
     mounted() {
         this.updateInkBar();
+        this.scrollable && this.updateButtonState();
     },
     updated() {
         this.updateInkBar();

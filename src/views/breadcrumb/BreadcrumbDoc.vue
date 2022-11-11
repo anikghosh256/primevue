@@ -95,6 +95,18 @@ export default {
                         <td>true</td>
                         <td>Whether to apply 'router-link-active-exact' class if route exactly matches the item path.</td>
                     </tr>
+                    <tr>
+                        <td>aria-label</td>
+                        <td>string</td>
+                        <td>null</td>
+                        <td>Defines a string value that labels an interactive element.</td>
+                    </tr>
+                    <tr>
+                        <td>aria-labelledby</td>
+                        <td>string</td>
+                        <td>null</td>
+                        <td>Establishes relationships between the component and label(s) where its value should be one or more element IDs.</td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -133,20 +145,45 @@ export default {
                         <td>Container element.</td>
                     </tr>
                     <tr>
+                        <td>p-breadcrumb-list</td>
+                        <td>Ordered list element.</td>
+                    </tr>
+                    <tr>
+                        <td>p-breadcrumb-home</td>
+                        <td>First list element.</td>
+                    </tr>
+                    <tr>
                         <td>p-menuitem</td>
                         <td>Menuitem element.</td>
+                    </tr>
+                    <tr>
+                        <td>p-menuitem-link</td>
+                        <td>Link element of the menuitem.</td>
                     </tr>
                     <tr>
                         <td>p-menuitem-text</td>
                         <td>Label of a menuitem.</td>
                     </tr>
                     <tr>
-                        <td>p-breadcrumb-chevron</td>
-                        <td>Chevron element.</td>
+                        <td>p-menuitem-icon</td>
+                        <td>Icon of a menuitem.</td>
                     </tr>
                 </tbody>
             </table>
         </div>
+
+        <h5>Dependencies</h5>
+        <p>None.</p>
+
+        <h5>Accessibility</h5>
+        <h6>Screen Reader</h6>
+        <p>
+            Breadcrumb uses the <i>nav</i> element and since any attribute is passed to the root implicitly <i>aria-labelledby</i> or <i>aria-label</i> can be used to describe the component. Inside an ordered list is used where the list item
+            separators have <i>aria-hidden</i> to be able to ignored by the screen readers. If the last link represents the current route, <i>aria-current</i> is added with "page" as the value.
+        </p>
+
+        <h6>Keyboard Support</h6>
+        <p>No special keyboard interaction is needed, all menuitems are focusable based on the page tab sequence.</p>
 
         <h5>Dependencies</h5>
         <p>None.</p>
@@ -163,7 +200,7 @@ export default {
                     content: `
 <template>
     <div>
-        <Breadcrumb :home="home" :model="items" />
+        <Breadcrumb :home="home" :model="items" aria-label="breadcrumb" />
     </div>
 </template>
 
@@ -172,7 +209,7 @@ export default {
     data() {
         return {
             home: {
-                icon: 'pi pi-home', 
+                icon: 'pi pi-home',
                 to: '/',
             },
             items: [
@@ -193,7 +230,7 @@ export default {
                     content: `
 <template>
     <div>
-        <Breadcrumb :home="home" :model="items" />
+        <Breadcrumb :home="home" :model="items" aria-label="breadcrumb" />
     </div>
 </template>
 
@@ -203,7 +240,7 @@ import { ref } from 'vue';
 export default {
     setup() {
         const home = ref({
-            icon: 'pi pi-home', 
+            icon: 'pi pi-home',
             to: '/',
         });
         const items = ref([
@@ -225,7 +262,7 @@ export default {
                     imports: `<script src="https://unpkg.com/vue-router@4.0.0/dist/vue-router.global.js"><\\/script>
         <script src="https://unpkg.com/primevue@^3/breadcrumb/breadcrumb.min.js"><\\/script>`,
                     content: `<div id="app">
-            <p-breadcrumb :home="home" :model="items"></p-breadcrumb>
+            <p-breadcrumb :home="home" :model="items" aria-label="breadcrumb"></p-breadcrumb>
         </div>
 
         <script type="module">
@@ -235,7 +272,7 @@ export default {
         const App = {
             setup() {
                 const home = ref({
-                    icon: 'pi pi-home', 
+                    icon: 'pi pi-home',
                     to: '/',
                 });
                 const items = ref([

@@ -189,8 +189,8 @@ export default {
                         <td>Menuitem element.</td>
                     </tr>
                     <tr>
-                        <td>p-highlight</td>
-                        <td>Active menuitem element.</td>
+                        <td>p-menuitem-link</td>
+                        <td>Link element of the menuitem.</td>
                     </tr>
                     <tr>
                         <td>p-menuitem-icon</td>
@@ -199,6 +199,70 @@ export default {
                     <tr>
                         <td>p-menuitem-text</td>
                         <td>Text of a menuitem.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h5>Accessibility</h5>
+
+        <h6>Screen Reader</h6>
+        <p>
+            TabMenu component uses the <i>menubar</i> role and the value to describe the menu can either be provided with <i>aria-labelledby</i> or <i>aria-label</i> props. Each list item has a <i>presentation</i> role whereas anchor elements have a
+            <i>menuitem</i> role with <i>aria-label</i> referring to the label of the item and <i>aria-disabled</i> defined if the item is disabled.
+        </p>
+
+        <h6>Keyboard Support</h6>
+        <div className="doc-tablewrapper">
+            <table className="doc-table">
+                <thead>
+                    <tr>
+                        <th>Key</th>
+                        <th>Function</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <i>tab</i>
+                        </td>
+                        <td>Adds focus to the active tab header when focus moves in to the component, if there is already a focused tab header moves the focus out of the component based on the page tab sequence.</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <i>enter</i>
+                        </td>
+                        <td>Activates the focused tab header.</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <i>space</i>
+                        </td>
+                        <td>Activates the focused tab header.</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <i>right arrow</i>
+                        </td>
+                        <td>Moves focus to the next header.</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <i>left arrow</i>
+                        </td>
+                        <td>Moves focus to the previous header.</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <i>home</i>
+                        </td>
+                        <td>Moves focus to the first header.</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <i>end</i>
+                        </td>
+                        <td>Moves focus to the last header.</td>
                     </tr>
                 </tbody>
             </table>
@@ -224,7 +288,7 @@ export default {
             <TabMenu :model="items" />
             <router-view/>
         </div>
-            
+
         <div class="card">
             <h5>Programmatic</h5>
             <div class="py-2">
@@ -313,7 +377,7 @@ export default {
             <TabMenu :model="items" />
             <router-view/>
         </div>
-            
+
         <div class="card">
             <h5>Programmatic</h5>
             <div class="py-2">
@@ -382,7 +446,7 @@ export default {
                 icon: 'pi pi-fw pi-cog'
             }
         ]);
-        
+
         return { active, items, items2 }
     }
 }
@@ -404,7 +468,7 @@ export default {
                 <p-tabmenu :model="items"></p-tabmenu>
                 <router-view></router-view>
             </div>
-                
+
             <div class="card">
                 <h5>Programmatic</h5>
                 <div class="py-2">
@@ -472,7 +536,7 @@ export default {
                         icon: 'pi pi-fw pi-cog'
                     }
                 ]);
-                
+
                 return { active, items, items2 }
             },
             components: {

@@ -66,6 +66,12 @@ const FileUploadProps = [
         description: 'Maximum number of files that can be uploaded.'
     },
     {
+        name: 'invalidFileLimitMessage',
+        type: 'string',
+        default: '"{0}": Invalid file type, allowed file types: "{1}".',
+        description: 'Message of the invalid file type.'
+    },
+    {
         name: 'withCredentials',
         type: 'boolean',
         default: 'false',
@@ -260,6 +266,22 @@ const FileUploadEvents = [
     {
         name: 'remove',
         description: 'Callback to invoke when a singe file is removed from the list.',
+        arguments: [
+            {
+                name: 'event.file',
+                type: 'object',
+                description: 'Removed file.'
+            },
+            {
+                name: 'event.files',
+                type: 'object',
+                description: 'Remaining files to be uploaded.'
+            }
+        ]
+    },
+    {
+        name: 'removeUploadedFile',
+        description: 'Callback to invoke when a single uploaded file is removed from the uploaded file list.',
         arguments: [
             {
                 name: 'event.file',

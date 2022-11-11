@@ -1,5 +1,5 @@
-import { reactive, inject } from 'vue';
 import { FilterMatchMode } from 'primevue/api';
+import { inject, reactive } from 'vue';
 
 const defaultOptions = {
     ripple: false,
@@ -31,6 +31,8 @@ const defaultOptions = {
         choose: 'Choose',
         upload: 'Upload',
         cancel: 'Cancel',
+        completed: 'Completed',
+        pending: 'Pending',
         dayNames: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
         dayNamesShort: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
         dayNamesMin: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
@@ -77,7 +79,8 @@ const defaultOptions = {
             unselectAll: 'All items unselected',
             close: 'Close',
             previous: 'Previous',
-            next: 'Next'
+            next: 'Next',
+            navigation: 'Navigation'
         }
     },
     filterMatchModeOptions: {

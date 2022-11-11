@@ -100,16 +100,26 @@ import Sidebar from 'primevue/sidebar';
                         <td>Whether to display a close icon inside the panel.</td>
                     </tr>
                     <tr>
+                        <td>closeIcon</td>
+                        <td>string</td>
+                        <td>pi pi-times</td>
+                        <td>Icon to display in the sidebar close button.</td>
+                    </tr>
+                    <tr>
                         <td>modal</td>
                         <td>boolean</td>
                         <td>true</td>
                         <td>Whether to a modal layer behind the sidebar.</td>
                     </tr>
                     <tr>
-                        <td>ariaCloseLabel</td>
+                        <td style="text-decoration: line-through">ariaCloseLabel</td>
                         <td>string</td>
                         <td>close</td>
-                        <td>Aria label of the close icon.</td>
+                        <td>
+                            Aria label of the close icon.
+                            <br />
+                            <b> Deprecated: </b> <i>aria.close</i> can be used in defaults to PrimeVue <router-link to="/locale">Locale</router-link> configuration.
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -216,6 +226,80 @@ import Sidebar from 'primevue/sidebar';
                     <tr>
                         <td>p-sidebar-mask</td>
                         <td>Modal layer of the sidebar.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h5>Accessibility</h5>
+        <h6>Screen Reader</h6>
+        <p>
+            Sidebar component uses <i>complementary</i> role by default, since any attribute is passed to the root element aria role can be changed depending on your use case and additional attributes like <i>aria-labelledby</i> can be added. In
+            addition <i>aria-modal</i> is added since focus is kept within the sidebar when opened.
+        </p>
+        <p>It is recommended to use a trigger component that can be accessed with keyboard such as a button, if not adding <i>tabIndex</i> would be necessary.</p>
+        <p>Trigger element also requires <i>aria-expanded</i> and <i>aria-controls</i> to be handled explicitly.</p>
+
+        <pre v-code><code>
+&lt;Button label="Show" icon="pi pi-external-link" @click="visible = true" :aria-controls="visible ? 'sbar' : null" :aria-expanded="visible"/&gt;
+
+&lt;Sidebar id="sbar" v-model:visible="visible" role="region" &gt;
+    &lt;p&gt;Content&lt;/p&gt;
+&lt;/Sidebar&gt;
+
+</code></pre>
+
+        <h6>Overlay Keyboard Support</h6>
+        <div class="doc-tablewrapper">
+            <table class="doc-table">
+                <thead>
+                    <tr>
+                        <th>Key</th>
+                        <th>Function</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <i>tab</i>
+                        </td>
+                        <td>Moves focus to the next the focusable element within the sidebar.</td>
+                    </tr>
+                    <tr>
+                        <td><i>shift</i> + <i>tab</i></td>
+                        <td>Moves focus to the previous the focusable element within the sidebar.</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <i>escape</i>
+                        </td>
+                        <td>Closes the dialog.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h6>Close Button Keyboard Support</h6>
+        <div class="doc-tablewrapper">
+            <table class="doc-table">
+                <thead>
+                    <tr>
+                        <th>Key</th>
+                        <th>Function</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <i>enter</i>
+                        </td>
+                        <td>Closes the sidebar.</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <i>space</i>
+                        </td>
+                        <td>Closes the sidebar.</td>
                     </tr>
                 </tbody>
             </table>

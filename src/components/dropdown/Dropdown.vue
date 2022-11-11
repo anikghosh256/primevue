@@ -47,7 +47,7 @@
         >
             <slot name="value" :value="modelValue" :placeholder="placeholder">{{ label === 'p-emptylabel' ? '&nbsp;' : label || 'empty' }}</slot>
         </span>
-        <i v-if="showClear && modelValue != null" class="p-dropdown-clear-icon pi pi-times" @click="onClearClick" v-bind="clearIconProps"></i>
+        <i v-if="showClear && modelValue != null" :class="['p-dropdown-clear-icon', clearIcon]" @click="onClearClick" v-bind="clearIconProps"></i>
         <div class="p-dropdown-trigger">
             <slot name="indicator">
                 <span :class="dropdownIconClass" aria-hidden="true"></span>
@@ -76,7 +76,7 @@
                                 @input="onFilterChange"
                                 v-bind="filterInputProps"
                             />
-                            <span class="p-dropdown-filter-icon pi pi-search"></span>
+                            <span :class="['p-dropdown-filter-icon', filterIcon]" />
                         </div>
                         <span role="status" aria-live="polite" class="p-hidden-accessible">
                             {{ filterResultMessageText }}
@@ -136,12 +136,12 @@
 </template>
 
 <script>
-import { ConnectedOverlayScrollHandler, ObjectUtils, DomHandler, ZIndexUtils, UniqueComponentId } from 'primevue/utils';
-import OverlayEventBus from 'primevue/overlayeventbus';
 import { FilterService } from 'primevue/api';
-import Ripple from 'primevue/ripple';
-import VirtualScroller from 'primevue/virtualscroller';
+import OverlayEventBus from 'primevue/overlayeventbus';
 import Portal from 'primevue/portal';
+import Ripple from 'primevue/ripple';
+import { ConnectedOverlayScrollHandler, DomHandler, ObjectUtils, UniqueComponentId, ZIndexUtils } from 'primevue/utils';
+import VirtualScroller from 'primevue/virtualscroller';
 
 export default {
     name: 'Dropdown',
@@ -226,6 +226,18 @@ export default {
         loading: {
             type: Boolean,
             default: false
+        },
+        clearIcon: {
+            type: String,
+            default: 'pi pi-times'
+        },
+        dropdownIcon: {
+            type: String,
+            default: 'pi pi-chevron-down'
+        },
+        filterIcon: {
+            type: String,
+            default: 'pi pi-search'
         },
         loadingIcon: {
             type: String,
@@ -386,7 +398,7 @@ export default {
         },
         onFocus(event) {
             this.focused = true;
-            this.focusedOptionIndex = this.overlayVisible && this.autoOptionFocus ? this.findFirstFocusedOptionIndex() : -1;
+            this.focusedOptionIndex = this.focusedOptionIndex !== -1 ? this.focusedOptionIndex : this.overlayVisible && this.autoOptionFocus ? this.findFirstFocusedOptionIndex() : -1;
             this.overlayVisible && this.scrollInView(this.focusedOptionIndex);
             this.$emit('focus', event);
         },
@@ -939,12 +951,31 @@ export default {
             ];
         },
         dropdownIconClass() {
-            return ['p-dropdown-trigger-icon', this.loading ? this.loadingIcon : 'pi pi-chevron-down'];
+            return ['p-dropdown-trigger-icon', this.loading ? this.loadingIcon : this.dropdownIcon];
         },
         visibleOptions() {
             const options = this.optionGroupLabel ? this.flatOptions(this.options) : this.options || [];
 
-            return this.filterValue ? FilterService.filter(options, this.searchFields, this.filterValue, this.filterMatchMode, this.filterLocale) : options;
+            if (this.filterValue) {
+                const filteredOptions = FilterService.filter(options, this.searchFields, this.filterValue, this.filterMatchMode, this.filterLocale);
+
+                if (this.optionGroupLabel) {
+                    const optionGroups = this.options || [];
+                    const filtered = [];
+
+                    optionGroups.forEach((group) => {
+                        const filteredItems = group.items.filter((item) => filteredOptions.includes(item));
+
+                        if (filteredItems.length > 0) filtered.push({ ...group, items: [...filteredItems] });
+                    });
+
+                    return this.flatOptions(filtered);
+                }
+
+                return filteredOptions;
+            }
+
+            return options;
         },
         hasSelectedOption() {
             return ObjectUtils.isNotEmpty(this.modelValue);

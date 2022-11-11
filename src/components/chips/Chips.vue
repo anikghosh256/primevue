@@ -28,7 +28,7 @@
                 <slot name="chip" :value="val">
                     <span class="p-chips-token-label">{{ val }}</span>
                 </slot>
-                <span class="p-chips-token-icon pi pi-times-circle" @click="removeItem($event, i)" aria-hidden="true"></span>
+                <span :class="['p-chips-token-icon', removeTokenIcon]" @click="removeItem($event, i)" aria-hidden="true"></span>
             </li>
             <li class="p-chips-input-token" role="option">
                 <input
@@ -101,6 +101,10 @@ export default {
         inputProps: {
             type: null,
             default: null
+        },
+        removeTokenIcon: {
+            type: String,
+            default: 'pi pi-times-circle'
         },
         'aria-labelledby': {
             type: String,
@@ -251,6 +255,10 @@ export default {
             });
             this.$refs.input.value = '';
             this.inputValue = '';
+
+            setTimeout(() => {
+                this.maxedOut && (this.focused = false);
+            }, 0);
 
             if (preventDefault) {
                 event.preventDefault();

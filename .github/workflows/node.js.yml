@@ -3,8 +3,6 @@ name: NodeJS CI
 on:
   push:
     branches: [ master ]
-  pull_request:
-    branches: [ master ]
 
 permissions:
   contents: read
@@ -29,4 +27,23 @@ jobs:
     - name: Build
       run: |
         npm install
-        npm run build:check
+
+    - name: Lint Check
+      if: ${{ success() }}
+      run: |
+        npm run lint
+
+    - name: Code Format
+      if: ${{ success() }}
+      run: |
+        npm run format:check
+
+    - name: Security Check
+      if: ${{ success() }}
+      run: |
+        npm run security:check
+
+    - name: Test
+      if: ${{ success() }}
+      run: |
+        npm run test:unit
